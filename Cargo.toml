@@ -1,0 +1,10 @@
+[package]
+name = "jay-squad-sec"
+version = "0.1.0"
+edition = "2021"
+description = "Prototype userspace core for the Jay Squad Sec adaptive zero-trust endpoint platform"
+
+# Zero dependencies on purpose: builds anywhere, no supply chain.
+# Production swaps: std hasher -> blake3, u64 tag -> ed25519 signature,
+# simulated clock -> real time, scripted sensor -> kernel adapters (eBPF/WFP/ETW).
+[dependencies]
