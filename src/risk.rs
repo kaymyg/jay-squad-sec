@@ -39,6 +39,12 @@ pub enum PolicyAction {
 }
 
 pub fn action_for(score: f32) -> PolicyAction {
+    // NaN compares false against every threshold below, so it used to fall
+    // through to Allow. A risk engine that cannot evaluate a score must fail
+    // closed, not open.
+    if score.is_nan() {
+        return PolicyAction::Block;
+    }
     match score {
         s if s >= 100.0 => PolicyAction::Block,
         s if s >= 75.0 => PolicyAction::Suspend,
@@ -116,4 +122,15 @@ mod tests {
         assert!(PolicyAction::Block > PolicyAction::Suspend);
         assert!(PolicyAction::Restrict > PolicyAction::Monitor);
     }
-}
+
+    #[test]
+    fn nan_fails_closed_instead_of_open() {
+        // an unevaluable score is the one case where Allow is the worst answer
+        assert_eq!(action_for(f32::NAN), PolicyAction::Block);
+    }
+
+    #[test]
+    fn infinities_land_on_the_extremes() {
+        assert_eq!(action_for(f32::INFINITY), PolicyAction::Block);
+        assert_eq!(action_for(f32::NEG_INFINITY), PolicyAction::Allow);
+    }}
